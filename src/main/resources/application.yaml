@@ -1,0 +1,21 @@
+gateway:
+  mqtt:
+    enabled: ${GATEWAY_MQTT_ENABLED:true}
+    server-uri: ${GATEWAY_MQTT_SERVER_URI}
+    client-id-prefix: ${GATEWAY_MQTT_CLIENT_ID_PREFIX:xiaozhi-java-gateway}
+    username: ${GATEWAY_MQTT_USERNAME:}
+    password: ${GATEWAY_MQTT_PASSWORD:}
+    inbound-topic: ${GATEWAY_MQTT_INBOUND_TOPIC:device-server}
+    outbound-topic-template: ${GATEWAY_MQTT_OUTBOUND_TOPIC_TEMPLATE:device/{clientId}/down}
+    client-id-payload-field: ${GATEWAY_MQTT_CLIENT_ID_PAYLOAD_FIELD:client_id}
+    qos: ${GATEWAY_MQTT_QOS:0}
+  runtime:
+    udp-public-host: ${PUBLIC_IP:mqtt.xiaozhi.me}
+    udp-port: ${UDP_PORT:8884}
+  udp:
+    enabled: ${GATEWAY_UDP_ENABLED:true}
+    bind-host: ${GATEWAY_UDP_BIND_HOST:0.0.0.0}
+    bind-port: ${UDP_PORT:8884}
+    worker-threads: ${GATEWAY_UDP_WORKER_THREADS:0}
+  security:
+    signature-key: ${MQTT_SIGNATURE_KEY:Starmate}

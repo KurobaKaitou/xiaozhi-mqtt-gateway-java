@@ -2,8 +2,10 @@ package site.dimensions0718.ai.xiaozhi.mqtt.gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication
+@ConfigurationPropertiesScan
 public class XiaozhiMqttGatewayJavaApplication {
 
     public static void main(String[] args) {
