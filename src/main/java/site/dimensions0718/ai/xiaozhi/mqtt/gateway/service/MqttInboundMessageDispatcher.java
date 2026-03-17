@@ -41,12 +41,14 @@ public class MqttInboundMessageDispatcher {
 
         try {
             String clientId = topicResolver.extractClientId(topic, message.getPayload());
+            log.info("mqtt inbound received: topic={}, clientId={}", topic, clientId);
             String response = mqttControlService.handleBrokerPublish(clientId, message.getPayload());
             if (response != null && !response.isBlank()) {
                 String responseTopic = topicResolver.buildOutboundTopic(clientId);
-                mqttOutboundChannel.send(MessageBuilder.withPayload(response)
+                boolean sent = mqttOutboundChannel.send(MessageBuilder.withPayload(response)
                         .setHeader(MqttHeaders.TOPIC, responseTopic)
                         .build());
+                log.info("mqtt downlink publish: topic={}, clientId={}, sent={}", responseTopic, clientId, sent);
             }
         } catch (RuntimeException exception) {
             log.warn("failed to process mqtt inbound message, topic={}", topic, exception);

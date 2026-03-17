@@ -38,6 +38,15 @@ class UdpPacketProcessorTests {
         return packet;
     }
 
+    private static byte[] encryptedPacket(long connectionId, long timestamp, long sequence, byte[] plaintext, byte[] key) {
+        UdpPacketHeader header = new UdpPacketHeader(0x01, 0x00, plaintext.length, connectionId, timestamp, sequence);
+        byte[] headerBytes = header.encode();
+        byte[] encryptedPayload = AesCtrCodec.encrypt(plaintext, key, headerBytes);
+        byte[] packet = Arrays.copyOf(headerBytes, headerBytes.length + encryptedPayload.length);
+        System.arraycopy(encryptedPayload, 0, packet, headerBytes.length, encryptedPayload.length);
+        return packet;
+    }
+
     private static byte[] hex(String value) {
         int length = value.length();
         byte[] result = new byte[length / 2];
@@ -50,17 +59,15 @@ class UdpPacketProcessorTests {
     @Test
     void shouldAcceptValidEncryptedPacketAndForwardFrame() {
         byte[] key = hex("00112233445566778899aabbccddeeff");
-        byte[] nonce = hex("0102030405060708090a0b0c0d0e0f10");
         InMemoryDeviceSessionStore store = new InMemoryDeviceSessionStore();
-        DeviceSession session = sessionWithActiveUdp("device-1", 0x11223344L, key, nonce);
+        DeviceSession session = sessionWithActiveUdp("device-1", 0x11223344L, key, new byte[16]);
         store.upsert(session);
 
         List<UdpAudioFrame> frames = new ArrayList<>();
         UdpPacketProcessor processor = new UdpPacketProcessor(store, frames::add, new UdpMetrics(), new UdpSequenceWindow(32));
 
         byte[] plaintext = "opus-frame".getBytes();
-        byte[] ciphertext = AesCtrCodec.encrypt(plaintext, key, nonce);
-        byte[] packet = packet(0x11223344L, 100, 10, ciphertext);
+        byte[] packet = encryptedPacket(0x11223344L, 100, 10, plaintext, key);
 
         UdpProcessingOutcome outcome = processor.process(packet, new InetSocketAddress("127.0.0.1", 30000));
         assertTrue(outcome.accepted());
@@ -88,17 +95,16 @@ class UdpPacketProcessorTests {
     @Test
     void shouldDropReplayPacket() {
         byte[] key = hex("00112233445566778899aabbccddeeff");
-        byte[] nonce = hex("0102030405060708090a0b0c0d0e0f10");
         InMemoryDeviceSessionStore store = new InMemoryDeviceSessionStore();
-        store.upsert(sessionWithActiveUdp("device-2", 0x55667788L, key, nonce));
+        store.upsert(sessionWithActiveUdp("device-2", 0x55667788L, key, new byte[16]));
 
         UdpPacketProcessor processor = new UdpPacketProcessor(store, frame -> {
         }, new UdpMetrics(), new UdpSequenceWindow(32));
-        byte[] payload = AesCtrCodec.encrypt("abc".getBytes(), key, nonce);
+        byte[] plain = "abc".getBytes();
 
-        UdpProcessingOutcome first = processor.process(packet(0x55667788L, 100, 10, payload),
+        UdpProcessingOutcome first = processor.process(encryptedPacket(0x55667788L, 100, 10, plain, key),
                 new InetSocketAddress("127.0.0.1", 20000));
-        UdpProcessingOutcome replay = processor.process(packet(0x55667788L, 101, 10, payload),
+        UdpProcessingOutcome replay = processor.process(encryptedPacket(0x55667788L, 101, 10, plain, key),
                 new InetSocketAddress("127.0.0.1", 20000));
 
         assertTrue(first.accepted());

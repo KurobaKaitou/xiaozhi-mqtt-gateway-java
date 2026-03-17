@@ -57,6 +57,7 @@ public class UdpPacketProcessor {
             return drop(UdpDropReason.UNKNOWN_SESSION);
         }
         DeviceSession session = maybeSession.get();
+        session.updateUdpRemoteAddress(remoteAddress);
 
         if (!sequenceWindow.accept(header.connectionId(), header.sequence())) {
             return drop(UdpDropReason.REPLAY_OR_TOO_OLD);
@@ -67,7 +68,8 @@ public class UdpPacketProcessor {
 
         byte[] decrypted;
         try {
-            decrypted = AesCtrCodec.decrypt(encryptedPayload, session.udpKey(), session.udpNonce());
+            byte[] iv = Arrays.copyOf(packetBytes, UdpPacketHeader.HEADER_LENGTH);
+            decrypted = AesCtrCodec.decrypt(encryptedPayload, session.udpKey(), iv);
         } catch (RuntimeException ex) {
             return drop(UdpDropReason.DECRYPT_FAILED);
         }

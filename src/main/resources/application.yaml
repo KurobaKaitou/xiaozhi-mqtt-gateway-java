@@ -1,16 +1,16 @@
 gateway:
   mqtt:
     enabled: ${GATEWAY_MQTT_ENABLED:true}
-    server-uri: ${GATEWAY_MQTT_SERVER_URI}
+    server-uri: ${GATEWAY_MQTT_SERVER_URI:tcp://114.132.160.185:1883}
     client-id-prefix: ${GATEWAY_MQTT_CLIENT_ID_PREFIX:xiaozhi-java-gateway}
     username: ${GATEWAY_MQTT_USERNAME:}
     password: ${GATEWAY_MQTT_PASSWORD:}
-    inbound-topic: ${GATEWAY_MQTT_INBOUND_TOPIC:device-server}
-    outbound-topic-template: ${GATEWAY_MQTT_OUTBOUND_TOPIC_TEMPLATE:device/{clientId}/down}
+    inbound-topic: ${GATEWAY_MQTT_INBOUND_TOPIC:device/+/up}
+    outbound-topic-template: ${GATEWAY_MQTT_OUTBOUND_TOPIC_TEMPLATE:devices/p2p/{macRaw}}
     client-id-payload-field: ${GATEWAY_MQTT_CLIENT_ID_PAYLOAD_FIELD:client_id}
     qos: ${GATEWAY_MQTT_QOS:0}
   runtime:
-    udp-public-host: ${PUBLIC_IP:mqtt.xiaozhi.me}
+    udp-public-host: ${PUBLIC_IP:192.168.10.147}
     udp-port: ${UDP_PORT:8884}
   udp:
     enabled: ${GATEWAY_UDP_ENABLED:true}
@@ -19,3 +19,9 @@ gateway:
     worker-threads: ${GATEWAY_UDP_WORKER_THREADS:0}
   security:
     signature-key: ${MQTT_SIGNATURE_KEY:Starmate}
+  bridge:
+    enabled: ${GATEWAY_BRIDGE_ENABLED:true}
+    hello-version: ${GATEWAY_BRIDGE_HELLO_VERSION:2}
+    frame-duration-ms: ${GATEWAY_BRIDGE_FRAME_DURATION_MS:60}
+    connect-timeout-millis: ${GATEWAY_BRIDGE_CONNECT_TIMEOUT_MILLIS:5000}
+    chat-servers: ${GATEWAY_BRIDGE_CHAT_SERVERS:ws://192.168.10.147:8000/xiaozhi/v1/?from=mqtt_gateway}

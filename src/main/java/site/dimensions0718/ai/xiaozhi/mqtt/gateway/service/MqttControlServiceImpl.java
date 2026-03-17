@@ -11,6 +11,8 @@ import site.dimensions0718.ai.xiaozhi.mqtt.gateway.session.DeviceSession;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.session.IDeviceSessionStore;
 
 import java.security.SecureRandom;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.HexFormat;
@@ -110,9 +112,8 @@ public class MqttControlServiceImpl implements IMqttControlService {
         session.markChannelRequested();
         String sessionId = UUID.randomUUID().toString();
         byte[] key = new byte[16];
-        byte[] nonce = new byte[16];
+        byte[] nonce = buildUdpNonceHeader(connectionId);
         secureRandom.nextBytes(key);
-        secureRandom.nextBytes(nonce);
         session.activateUdp(sessionId, version, key, nonce);
         sessionStore.upsert(session);
 
@@ -139,5 +140,16 @@ public class MqttControlServiceImpl implements IMqttControlService {
         response.put("type", "goodbye");
         response.put("session_id", payload.getString("session_id"));
         return JSON.toJSONString(response);
+    }
+
+    private static byte[] buildUdpNonceHeader(long connectionId) {
+        ByteBuffer buffer = ByteBuffer.allocate(16).order(ByteOrder.BIG_ENDIAN);
+        buffer.put((byte) 0x01);
+        buffer.put((byte) 0x00);
+        buffer.putShort((short) 0);
+        buffer.putInt((int) connectionId);
+        buffer.putInt(0);
+        buffer.putInt(0);
+        return buffer.array();
     }
 }

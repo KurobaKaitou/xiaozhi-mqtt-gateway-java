@@ -1,6 +1,7 @@
 package site.dimensions0718.ai.xiaozhi.mqtt.gateway.session;
 
 import java.time.Instant;
+import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -20,6 +21,8 @@ public final class DeviceSession {
     private volatile int protocolVersion;
     private volatile byte[] udpKey;
     private volatile byte[] udpNonce;
+    private volatile InetSocketAddress udpRemoteAddress;
+    private volatile long udpLocalSequence;
 
     public DeviceSession(
             String clientId,
@@ -39,6 +42,7 @@ public final class DeviceSession {
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt");
         this.lastSeenAt = createdAt;
         this.state = SessionState.MQTT_CONNECTED;
+        this.udpLocalSequence = 0;
     }
 
     public synchronized void activateUdp(String sessionId, int protocolVersion, byte[] udpKey, byte[] udpNonce) {
@@ -48,6 +52,17 @@ public final class DeviceSession {
         this.udpNonce = Arrays.copyOf(Objects.requireNonNull(udpNonce, "udpNonce"), udpNonce.length);
         this.state = SessionState.UDP_ACTIVE;
         this.lastSeenAt = Instant.now();
+        this.udpLocalSequence = 0;
+    }
+
+    public synchronized void updateUdpRemoteAddress(InetSocketAddress remoteAddress) {
+        this.udpRemoteAddress = remoteAddress;
+        this.lastSeenAt = Instant.now();
+    }
+
+    public synchronized long nextUdpLocalSequence() {
+        this.udpLocalSequence += 1;
+        return this.udpLocalSequence;
     }
 
     public synchronized void markChannelRequested() {
@@ -118,5 +133,9 @@ public final class DeviceSession {
 
     public byte[] udpNonce() {
         return udpNonce == null ? null : Arrays.copyOf(udpNonce, udpNonce.length);
+    }
+
+    public InetSocketAddress udpRemoteAddress() {
+        return udpRemoteAddress;
     }
 }

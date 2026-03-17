@@ -11,12 +11,13 @@ class MqttTopicResolverTests {
     @Test
     void shouldParseClientIdAndBuildResponseTopic() {
         MqttGatewayProperties properties = new MqttGatewayProperties();
-        properties.setOutboundTopicTemplate("device/{clientId}/down");
+        properties.setOutboundTopicTemplate("devices/p2p/{macRaw}");
         MqttTopicResolver resolver = new MqttTopicResolver(properties);
 
         String clientId = resolver.extractClientId("device/lichuang-dev@@@a0_85_e3_f4_49_34@@@uuid/up", "{}");
         assertEquals("lichuang-dev@@@a0_85_e3_f4_49_34@@@uuid", clientId);
-        assertEquals("device/abc/down", resolver.buildOutboundTopic("abc"));
+        assertEquals("devices/p2p/a0_85_e3_f4_49_34",
+                resolver.buildOutboundTopic("lichuang-dev@@@a0_85_e3_f4_49_34@@@uuid"));
     }
 
     @Test

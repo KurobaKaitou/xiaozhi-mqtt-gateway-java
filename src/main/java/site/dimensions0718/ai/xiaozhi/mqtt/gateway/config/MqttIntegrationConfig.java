@@ -50,11 +50,7 @@ public class MqttIntegrationConfig {
     @Bean
     public MessageProducer mqttInboundAdapter(MqttGatewayProperties properties, MqttPahoClientFactory mqttClientFactory) {
         String clientId = properties.getClientIdPrefix() + "-in-" + UUID.randomUUID();
-        MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter(
-                clientId,
-                mqttClientFactory,
-                properties.getInboundTopic()
-        );
+        MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter(clientId, mqttClientFactory, properties.getInboundTopic());
         adapter.setCompletionTimeout(5000);
         adapter.setConverter(new org.springframework.integration.mqtt.support.DefaultPahoMessageConverter());
         adapter.setQos(properties.getQos());

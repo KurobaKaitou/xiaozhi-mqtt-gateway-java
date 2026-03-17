@@ -43,7 +43,18 @@ public class MqttTopicResolver {
         if (template == null || template.isBlank()) {
             throw new IllegalArgumentException("outbound topic template must not be blank");
         }
-        return template.replace("{clientId}", clientId);
+        String macRaw = extractMacRawFromClientId(clientId);
+        return template
+                .replace("{clientId}", clientId)
+                .replace("{macRaw}", macRaw);
+    }
+
+    private static String extractMacRawFromClientId(String clientId) {
+        String[] parts = clientId.split("@@@", -1);
+        if (parts.length >= 2 && !parts[1].isBlank()) {
+            return parts[1];
+        }
+        return clientId;
     }
 
     private String extractClientIdFromPayload(String payloadJson) {

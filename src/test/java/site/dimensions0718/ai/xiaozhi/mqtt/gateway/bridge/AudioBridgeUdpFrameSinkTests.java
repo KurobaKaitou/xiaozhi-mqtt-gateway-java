@@ -1,6 +1,7 @@
 package site.dimensions0718.ai.xiaozhi.mqtt.gateway.bridge;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.protocol.UdpPacketHeader;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.session.DeviceSession;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.udp.UdpAudioFrame;
@@ -44,13 +45,15 @@ class AudioBridgeUdpFrameSinkTests {
         IAudioSynthesizer synthesizer = request -> Optional.of(new AudioSynthesisResult(new byte[]{0x01}, "opus", 16000));
         IRtcPusher rtcPusher = frame -> rtcPushCount.incrementAndGet();
         IBusinessEventPublisher publisher = event -> eventPublished.set(true);
+        WebSocketBridgeService webSocketBridgeService = Mockito.mock(WebSocketBridgeService.class);
 
         AudioBridgeUdpFrameSink sink = new AudioBridgeUdpFrameSink(
                 directExecutor,
                 recognizer,
                 synthesizer,
                 rtcPusher,
-                publisher
+                publisher,
+                webSocketBridgeService
         );
 
         sink.onFrame(sampleFrame());
@@ -71,13 +74,15 @@ class AudioBridgeUdpFrameSinkTests {
         IRtcPusher rtcPusher = frame -> {
         };
         IBusinessEventPublisher publisher = event -> eventCount.incrementAndGet();
+        WebSocketBridgeService webSocketBridgeService = Mockito.mock(WebSocketBridgeService.class);
 
         AudioBridgeUdpFrameSink sink = new AudioBridgeUdpFrameSink(
                 directExecutor,
                 recognizer,
                 synthesizer,
                 rtcPusher,
-                publisher
+                publisher,
+                webSocketBridgeService
         );
 
         sink.onFrame(sampleFrame());

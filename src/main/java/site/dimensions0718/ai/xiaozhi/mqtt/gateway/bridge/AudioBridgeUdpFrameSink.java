@@ -23,19 +23,22 @@ public class AudioBridgeUdpFrameSink implements IUdpAudioFrameSink {
     private final IAudioSynthesizer audioSynthesizer;
     private final IRtcPusher rtcPusher;
     private final IBusinessEventPublisher businessEventPublisher;
+    private final WebSocketBridgeService webSocketBridgeService;
 
     public AudioBridgeUdpFrameSink(
             @Qualifier("audioBridgeExecutor") Executor audioBridgeExecutor,
             IAudioRecognizer audioRecognizer,
             IAudioSynthesizer audioSynthesizer,
             IRtcPusher rtcPusher,
-            IBusinessEventPublisher businessEventPublisher
+            IBusinessEventPublisher businessEventPublisher,
+            WebSocketBridgeService webSocketBridgeService
     ) {
         this.audioBridgeExecutor = audioBridgeExecutor;
         this.audioRecognizer = audioRecognizer;
         this.audioSynthesizer = audioSynthesizer;
         this.rtcPusher = rtcPusher;
         this.businessEventPublisher = businessEventPublisher;
+        this.webSocketBridgeService = webSocketBridgeService;
     }
 
     @Override
@@ -45,6 +48,7 @@ public class AudioBridgeUdpFrameSink implements IUdpAudioFrameSink {
 
     private void processFrame(UdpAudioFrame frame) {
         try {
+            webSocketBridgeService.forwardDeviceAudio(frame);
             rtcPusher.push(frame);
 
             Optional<AudioRecognitionResult> recognition = audioRecognizer.recognize(new AudioRecognitionRequest(frame));

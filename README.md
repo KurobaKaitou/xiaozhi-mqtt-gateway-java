@@ -115,7 +115,7 @@ UDP_PORT=8884
 
 | 配置项 | 默认值 | 说明 |
 |---|---|---|
-| `gateway.mqtt.enabled` | `${GATEWAY_MQTT_ENABLED:true}` | 是否启用 MQTT 适配层 |
+| `gateway.mqtt.enabled` | `${GATEWAY_MQTT_ENABLED:false}` | 是否启用 MQTT 适配层 |
 | `gateway.mqtt.server-uri` | `${GATEWAY_MQTT_SERVER_URI:tcp://114.132.160.185:1883}` | EMQX 地址 |
 | `gateway.mqtt.client-id-prefix` | `xiaozhi-java-gateway` | 网关 MQTT clientId 前缀 |
 | `gateway.mqtt.username` | 空 | EMQX 用户名 |
@@ -126,11 +126,15 @@ UDP_PORT=8884
 | `gateway.mqtt.qos` | `0` | MQTT QoS |
 | `gateway.runtime.udp-public-host` | `${PUBLIC_IP:mqtt.xiaozhi.me}` | 回给设备的 UDP 服务器地址 |
 | `gateway.runtime.udp-port` | `${UDP_PORT:8884}` | 回给设备的 UDP 端口 |
-| `gateway.udp.enabled` | `${GATEWAY_UDP_ENABLED:true}` | 是否启动 Netty UDP 服务 |
+| `gateway.udp.enabled` | `${GATEWAY_UDP_ENABLED:false}` | 是否启动 Netty UDP 服务 |
 | `gateway.udp.bind-host` | `0.0.0.0` | UDP 绑定地址 |
 | `gateway.udp.bind-port` | `${UDP_PORT:8884}` | UDP 监听端口 |
 | `gateway.udp.worker-threads` | `0` | UDP worker 线程数，0=按 CPU 自动 |
 | `gateway.security.signature-key` | `${MQTT_SIGNATURE_KEY:}` | 设备签名和管理 API token 的密钥 |
+| `gateway.bridge.enabled` | `${GATEWAY_BRIDGE_ENABLED:false}` | 是否启用 WebSocket 桥接 |
+| `gateway.bridge.chat-servers` | `${GATEWAY_BRIDGE_CHAT_SERVERS:}` | 聊天服务 WS 地址列表（逗号分隔） |
+| `gateway.bridge.hello-version` | `2` | 发往聊天服务的 hello 协议版本 |
+| `gateway.bridge.frame-duration-ms` | `60` | UDP->WS 时间戳换算帧时长 |
 
 ## MQTT Topic 使用说明
 
@@ -145,6 +149,9 @@ UDP_PORT=8884
    - 无需从 payload 提取 clientId
 
 下行统一通过模板：`device/{clientId}/down`
+
+推荐 EMQX 接入方式：使用 Rule Engine 将 `device-server` 重写到 `device/{clientId}/up`。
+详见：`docs/emqx-rule-engine-topic-rewrite.md`
 
 ## 管理 API
 
