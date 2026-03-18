@@ -45,13 +45,12 @@ public class InMemoryDeviceSessionStore implements IDeviceSessionStore {
     }
 
     @Override
-    public synchronized boolean removeByClientId(String clientId) {
+    public synchronized void removeByClientId(String clientId) {
         DeviceSession removed = byClientId.remove(clientId);
         if (removed == null) {
-            return false;
+            return;
         }
         clientIdByConnectionId.remove(removed.connectionId());
-        return true;
     }
 
     @Override

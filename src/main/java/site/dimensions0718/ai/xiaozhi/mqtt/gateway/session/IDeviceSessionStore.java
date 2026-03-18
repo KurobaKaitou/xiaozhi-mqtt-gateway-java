@@ -11,7 +11,7 @@ public interface IDeviceSessionStore {
 
     Optional<DeviceSession> findByConnectionId(long connectionId);
 
-    boolean removeByClientId(String clientId);
+    void removeByClientId(String clientId);
 
     Map<String, DeviceSession> snapshot();
 }
