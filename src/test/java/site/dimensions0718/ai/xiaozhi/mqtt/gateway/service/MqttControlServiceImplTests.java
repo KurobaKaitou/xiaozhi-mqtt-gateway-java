@@ -84,7 +84,8 @@ class MqttControlServiceImplTests {
         InMemoryDeviceSessionStore store = new InMemoryDeviceSessionStore();
         GatewayRuntimeProperties properties = new GatewayRuntimeProperties();
         String secret = "AaBbCc123!";
-        MqttControlServiceImpl service = new MqttControlServiceImpl(store, properties, bridgeServiceMock(), secret, new SecureRandom());
+        WebSocketBridgeService bridgeService = bridgeServiceMock();
+        MqttControlServiceImpl service = new MqttControlServiceImpl(store, properties, bridgeService, secret, new SecureRandom());
 
         String clientId = "lichuang-dev@@@a0_85_e3_f4_49_34@@@aeebef32-f0ef-4bce-9d8a-894d91bc6932";
         String username = "eyJpcCI6IjE5Mi4xNjguMS43NyJ9";
@@ -99,8 +100,9 @@ class MqttControlServiceImplTests {
                 "{\"type\":\"goodbye\",\"session_id\":\"x\"}"
         );
 
-        assertEquals("goodbye", JSON.parseObject(response).getString("type"));
+        assertNull(response);
         assertTrue(store.findByClientId(clientId).isEmpty());
+        Mockito.verify(bridgeService).closeBridgeSession(clientId, "device_goodbye");
     }
 
     @Test

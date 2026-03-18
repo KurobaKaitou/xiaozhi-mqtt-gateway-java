@@ -11,9 +11,9 @@ import site.dimensions0718.ai.xiaozhi.mqtt.gateway.protocol.MqttCredentialSignat
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.session.DeviceSession;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.session.IDeviceSessionStore;
 
-import java.security.SecureRandom;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.HexFormat;
@@ -31,23 +31,11 @@ public class MqttControlServiceImpl implements IMqttControlService {
     private final SecureRandom secureRandom;
 
     @Autowired
-    public MqttControlServiceImpl(
-            IDeviceSessionStore sessionStore,
-            GatewayRuntimeProperties runtimeProperties,
-            WebSocketBridgeService webSocketBridgeService,
-            org.springframework.core.env.Environment environment
-    ) {
-        this(sessionStore, runtimeProperties, webSocketBridgeService,
-                environment.getProperty("MQTT_SIGNATURE_KEY", ""), new SecureRandom());
+    public MqttControlServiceImpl(IDeviceSessionStore sessionStore, GatewayRuntimeProperties runtimeProperties, WebSocketBridgeService webSocketBridgeService, org.springframework.core.env.Environment environment) {
+        this(sessionStore, runtimeProperties, webSocketBridgeService, environment.getProperty("MQTT_SIGNATURE_KEY", ""), new SecureRandom());
     }
 
-    MqttControlServiceImpl(
-            IDeviceSessionStore sessionStore,
-            GatewayRuntimeProperties runtimeProperties,
-            WebSocketBridgeService webSocketBridgeService,
-            String signatureKey,
-            SecureRandom secureRandom
-    ) {
+    MqttControlServiceImpl(IDeviceSessionStore sessionStore, GatewayRuntimeProperties runtimeProperties, WebSocketBridgeService webSocketBridgeService, String signatureKey, SecureRandom secureRandom) {
         this.sessionStore = sessionStore;
         this.runtimeProperties = runtimeProperties;
         this.webSocketBridgeService = webSocketBridgeService;
@@ -89,7 +77,7 @@ public class MqttControlServiceImpl implements IMqttControlService {
             return handleHello(identity, clientId, usernameBase64, payload);
         }
         if ("goodbye".equals(messageType)) {
-            return handleGoodbye(clientId, payload);
+            handleGoodbye(clientId, payload);
         }
         return null;
     }
@@ -105,15 +93,7 @@ public class MqttControlServiceImpl implements IMqttControlService {
         }
 
         long connectionId = ThreadLocalRandom.current().nextLong(0, 0x1_0000_0000L);
-        DeviceSession session = new DeviceSession(
-                clientId,
-                identity.groupId(),
-                identity.macAddress(),
-                identity.uuid(),
-                usernameBase64,
-                connectionId,
-                Instant.now()
-        );
+        DeviceSession session = new DeviceSession(clientId, identity.groupId(), identity.macAddress(), identity.uuid(), usernameBase64, connectionId, Instant.now());
 
         session.markChannelRequested();
         String sessionId = UUID.randomUUID().toString();
@@ -141,12 +121,9 @@ public class MqttControlServiceImpl implements IMqttControlService {
         return JSON.toJSONString(response);
     }
 
-    private String handleGoodbye(String clientId, JSONObject payload) {
+    private void handleGoodbye(String clientId, JSONObject payload) {
+        webSocketBridgeService.closeBridgeSession(clientId, "device_goodbye");
         sessionStore.removeByClientId(clientId);
-        Map<String, Object> response = new HashMap<>();
-        response.put("type", "goodbye");
-        response.put("session_id", payload.getString("session_id"));
-        return JSON.toJSONString(response);
     }
 
     private static byte[] buildUdpNonceHeader(long connectionId) {

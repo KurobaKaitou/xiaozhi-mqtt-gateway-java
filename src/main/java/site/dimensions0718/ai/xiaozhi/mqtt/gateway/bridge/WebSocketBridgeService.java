@@ -26,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 public class WebSocketBridgeService {
@@ -85,6 +86,22 @@ public class WebSocketBridgeService {
         }
 
         sessions.computeIfAbsent(session.clientId(), key -> openSession(session, chatServers, deviceHelloPayload));
+    }
+
+    public void closeBridgeSession(String clientId, String reason) {
+        if (clientId == null || clientId.isBlank()) {
+            return;
+        }
+
+        BridgeSession session = sessions.remove(clientId);
+        if (session == null || session.webSocket == null) {
+            return;
+        }
+
+        if (session.closing.compareAndSet(false, true)) {
+            session.webSocket.sendClose(WebSocket.NORMAL_CLOSURE, reason == null ? "goodbye" : reason);
+            log.info("websocket bridge close requested: clientId={}, reason={}", clientId, reason);
+        }
     }
 
     private BridgeSession openSession(DeviceSession deviceSession, List<String> chatServers, JSONObject deviceHelloPayload) {
@@ -315,5 +332,6 @@ public class WebSocketBridgeService {
     private static final class BridgeSession {
         private WebSocket webSocket;
         private long sequenceStart;
+        private final AtomicBoolean closing = new AtomicBoolean(false);
     }
 }
