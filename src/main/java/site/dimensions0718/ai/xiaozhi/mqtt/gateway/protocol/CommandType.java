@@ -3,8 +3,7 @@ package site.dimensions0718.ai.xiaozhi.mqtt.gateway.protocol;
 import java.util.Locale;
 
 public enum CommandType {
-    MCP,
-    UNKNOWN;
+    MCP, UNKNOWN;
 
     public static CommandType from(String rawType) {
         if (rawType == null || rawType.isBlank()) {

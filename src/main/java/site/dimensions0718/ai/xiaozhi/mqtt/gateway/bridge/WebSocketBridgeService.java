@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.config.WebSocketBridgeProperties;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.protocol.MqttMessageType;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.service.IMqttDownlinkPublisher;
@@ -50,13 +51,18 @@ public class WebSocketBridgeService {
         this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofMillis(bridgeProperties.getConnectTimeoutMillis())).build();
     }
 
+    /**
+     * 转发设备音频流
+     *
+     * @param frame 音频帧
+     */
     public void forwardDeviceAudio(UdpAudioFrame frame) {
         if (!bridgeProperties.isEnabled()) {
             return;
         }
 
         List<String> chatServers = bridgeProperties.getChatServers();
-        if (chatServers == null || chatServers.isEmpty() || chatServers.get(0).isBlank()) {
+        if (CollectionUtils.isEmpty(chatServers) || chatServers.getFirst().isBlank()) {
             return;
         }
 
@@ -82,7 +88,7 @@ public class WebSocketBridgeService {
         }
 
         List<String> chatServers = bridgeProperties.getChatServers();
-        if (chatServers == null || chatServers.isEmpty() || chatServers.get(0).isBlank()) {
+        if (CollectionUtils.isEmpty(chatServers) || chatServers.getFirst().isBlank()) {
             return;
         }
 

@@ -51,7 +51,7 @@ public class ReplacementReadinessService {
                 environment.getProperty("MQTT_SIGNATURE_KEY", ""));
         checks.add(check(
                 "SIGNATURE_KEY_CONFIGURED",
-                signatureKey != null && !signatureKey.isBlank(),
+                !signatureKey.isBlank(),
                 "gateway.security.signature-key or MQTT_SIGNATURE_KEY must be configured",
                 true
         ));
