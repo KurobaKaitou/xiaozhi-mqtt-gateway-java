@@ -1,5 +1,7 @@
 package site.dimensions0718.ai.xiaozhi.mqtt.gateway.service;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -8,8 +10,6 @@ import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.config.MqttGatewayProperties;
 
 import java.util.LinkedHashSet;
@@ -25,11 +25,7 @@ public class MqttDownlinkPublisher implements IMqttDownlinkPublisher {
     private final MqttTopicResolver mqttTopicResolver;
     private final MqttGatewayProperties mqttGatewayProperties;
 
-    public MqttDownlinkPublisher(
-            @Qualifier("mqttOutboundChannel") ObjectProvider<MessageChannel> mqttOutboundChannelProvider,
-            MqttTopicResolver mqttTopicResolver,
-            MqttGatewayProperties mqttGatewayProperties
-    ) {
+    public MqttDownlinkPublisher(@Qualifier("mqttOutboundChannel") ObjectProvider<MessageChannel> mqttOutboundChannelProvider, MqttTopicResolver mqttTopicResolver, MqttGatewayProperties mqttGatewayProperties) {
         this.mqttOutboundChannelProvider = mqttOutboundChannelProvider;
         this.mqttTopicResolver = mqttTopicResolver;
         this.mqttGatewayProperties = mqttGatewayProperties;
@@ -57,9 +53,7 @@ public class MqttDownlinkPublisher implements IMqttDownlinkPublisher {
         }
 
         for (String topic : topics) {
-            boolean sent = channel.send(MessageBuilder.withPayload(payloadJson)
-                    .setHeader(MqttHeaders.TOPIC, topic)
-                    .build());
+            boolean sent = channel.send(MessageBuilder.withPayload(payloadJson).setHeader(MqttHeaders.TOPIC, topic).build());
             log.info("mqtt downlink publisher sent={}, topic={}, clientId={}", sent, topic, clientId);
         }
     }
