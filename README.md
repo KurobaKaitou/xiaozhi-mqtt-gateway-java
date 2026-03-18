@@ -4,6 +4,20 @@
 
 项目目标：在保留设备协议兼容性的前提下，用 Java 实现可维护、可扩展的网关能力。
 
+注: EMQX 服务需要自行部署在本地/服务器上 您可以采用Docker来运行以下命令来进行部署 EMQX 服务
+
+```bash
+docker run -d --name emqx-enterprise \
+  --restart=always \
+  -p 1883:1883 -p 8083:8083 \
+  -p 8084:8084 -p 8883:8883 \
+  -p 18083:18083 \
+  -v emqx_data:/opt/emqx/data \
+  -v emqx_log:/opt/emqx/log \
+  -v emqx_etc:/opt/emqx/etc \
+  emqx/emqx-enterprise:6.1.1
+```
+
 ---
 
 ## 这个项目是做什么的
@@ -126,6 +140,7 @@ UDP_PORT=8884
 
 ### 1) 设备显示等待响应超时
 
+- 云服务器 MQTT 相关端口是否开放
 - 网关是否收到 `hello`（看日志）
 - 网关是否成功发布下行消息
 - 设备是否订阅正确 topic
