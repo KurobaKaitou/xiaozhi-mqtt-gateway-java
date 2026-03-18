@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.bridge.WebSocketBridgeService;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.config.GatewayRuntimeProperties;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.protocol.DeviceIdentity;
+import site.dimensions0718.ai.xiaozhi.mqtt.gateway.protocol.MqttMessageType;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.protocol.MqttCredentialSignature;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.session.DeviceSession;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.session.IDeviceSessionStore;
@@ -19,6 +20,7 @@ import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.Map;
 import java.util.UUID;
+import java.util.EnumMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -29,6 +31,7 @@ public class MqttControlServiceImpl implements IMqttControlService {
     private final WebSocketBridgeService webSocketBridgeService;
     private final String signatureKey;
     private final SecureRandom secureRandom;
+    private final Map<MqttMessageType, MqttMessageHandlerStrategy> messageHandlers;
 
     @Autowired
     public MqttControlServiceImpl(IDeviceSessionStore sessionStore, GatewayRuntimeProperties runtimeProperties, WebSocketBridgeService webSocketBridgeService, org.springframework.core.env.Environment environment) {
@@ -41,6 +44,17 @@ public class MqttControlServiceImpl implements IMqttControlService {
         this.webSocketBridgeService = webSocketBridgeService;
         this.signatureKey = signatureKey == null ? "" : signatureKey;
         this.secureRandom = secureRandom;
+        this.messageHandlers = createMessageHandlers();
+    }
+
+    private Map<MqttMessageType, MqttMessageHandlerStrategy> createMessageHandlers() {
+        EnumMap<MqttMessageType, MqttMessageHandlerStrategy> handlers = new EnumMap<>(MqttMessageType.class);
+        handlers.put(MqttMessageType.HELLO, context -> handleHello(context.identity(), context.clientId(), context.usernameBase64(), context.payload()));
+        handlers.put(MqttMessageType.GOODBYE, context -> {
+            handleGoodbye(context.clientId());
+            return null;
+        });
+        return Map.copyOf(handlers);
     }
 
     private static String toHex(byte[] data) {
@@ -72,14 +86,12 @@ public class MqttControlServiceImpl implements IMqttControlService {
 
     private String handlePayload(DeviceIdentity identity, String clientId, String usernameBase64, String payloadJson) {
         JSONObject payload = JSON.parseObject(payloadJson);
-        String messageType = payload.getString("type");
-        if ("hello".equals(messageType)) {
-            return handleHello(identity, clientId, usernameBase64, payload);
+        MqttMessageType messageType = MqttMessageType.from(payload.getString("type"));
+        MqttMessageHandlerStrategy handler = messageHandlers.get(messageType);
+        if (handler == null) {
+            return null;
         }
-        if ("goodbye".equals(messageType)) {
-            handleGoodbye(clientId, payload);
-        }
-        return null;
+        return handler.handle(new MessageHandleContext(identity, clientId, usernameBase64, payload));
     }
 
     private String handleHello(DeviceIdentity identity, String clientId, String usernameBase64, JSONObject payload) {
@@ -121,7 +133,7 @@ public class MqttControlServiceImpl implements IMqttControlService {
         return JSON.toJSONString(response);
     }
 
-    private void handleGoodbye(String clientId, JSONObject payload) {
+    private void handleGoodbye(String clientId) {
         webSocketBridgeService.closeBridgeSession(clientId, "device_goodbye");
         sessionStore.removeByClientId(clientId);
     }
@@ -135,5 +147,13 @@ public class MqttControlServiceImpl implements IMqttControlService {
         buffer.putInt(0);
         buffer.putInt(0);
         return buffer.array();
+    }
+
+    private record MessageHandleContext(DeviceIdentity identity, String clientId, String usernameBase64, JSONObject payload) {
+    }
+
+    @FunctionalInterface
+    private interface MqttMessageHandlerStrategy {
+        String handle(MessageHandleContext context);
     }
 }

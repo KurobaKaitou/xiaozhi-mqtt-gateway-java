@@ -1,6 +1,6 @@
 gateway:
   mqtt:
-    enabled: ${GATEWAY_MQTT_ENABLED:true}
+    enabled: ${GATEWAY_MQTT_ENABLED:false}
     server-uri: ${GATEWAY_MQTT_SERVER_URI:tcp://127.0.0.1:1883}
     client-id-prefix: ${GATEWAY_MQTT_CLIENT_ID_PREFIX:xiaozhi-java-gateway}
     username: ${GATEWAY_MQTT_USERNAME:}
@@ -11,21 +11,21 @@ gateway:
     compatibility-outbound-topics: ${GATEWAY_MQTT_COMPATIBILITY_OUTBOUND_TOPICS:null,device/{clientId}/down}
     qos: ${GATEWAY_MQTT_QOS:0}
   runtime:
-    # 运行时向设备下发的UDP地址与端口
-    udp-public-host: ${PUBLIC_IP:192.168.10.147}
+    # 运行时向设备下发的 UDP 地址与端口
+    udp-public-host: ${PUBLIC_IP:mqtt.xiaozhi.me}
     udp-port: ${UDP_PORT:8884}
   udp:
-    enabled: ${GATEWAY_UDP_ENABLED:true}
+    enabled: ${GATEWAY_UDP_ENABLED:false}
     bind-host: ${GATEWAY_UDP_BIND_HOST:0.0.0.0}
     bind-port: ${UDP_PORT:8884}
     worker-threads: ${GATEWAY_UDP_WORKER_THREADS:0}
   security:
     signature-key: ${MQTT_SIGNATURE_KEY:}
   bridge:
-    enabled: ${GATEWAY_BRIDGE_ENABLED:true}
+    enabled: ${GATEWAY_BRIDGE_ENABLED:false}
     hello-version: ${GATEWAY_BRIDGE_HELLO_VERSION:2}
     frame-duration-ms: ${GATEWAY_BRIDGE_FRAME_DURATION_MS:60}
     connect-timeout-millis: ${GATEWAY_BRIDGE_CONNECT_TIMEOUT_MILLIS:5000}
     server-secret: ${SERVER_SECRET:}
     chat-servers:
-      - ws://192.168.10.147:8000/xiaozhi/v1/?from=mqtt_gateway
+      - ${GATEWAY_BRIDGE_CHAT_SERVER:ws://127.0.0.1:8000/xiaozhi/v1/?from=mqtt_gateway}

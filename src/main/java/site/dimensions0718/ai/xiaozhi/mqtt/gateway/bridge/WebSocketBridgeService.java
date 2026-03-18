@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.config.WebSocketBridgeProperties;
+import site.dimensions0718.ai.xiaozhi.mqtt.gateway.protocol.MqttMessageType;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.service.IMqttDownlinkPublisher;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.session.DeviceSession;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.session.IDeviceSessionStore;
@@ -144,7 +145,7 @@ public class WebSocketBridgeService {
 
     private String buildHelloPayload(JSONObject deviceHelloPayload) {
         JSONObject hello = new JSONObject();
-        hello.put("type", "hello");
+        hello.put("type", MqttMessageType.HELLO.value());
         hello.put("version", bridgeProperties.getHelloVersion());
         hello.put("transport", "websocket");
 
@@ -252,8 +253,8 @@ public class WebSocketBridgeService {
 
         try {
             JSONObject json = JSON.parseObject(payload);
-            String type = json.getString("type");
-            if ("hello".equals(type)) {
+            MqttMessageType type = MqttMessageType.from(json.getString("type"));
+            if (MqttMessageType.HELLO == type) {
                 return;
             }
             mqttDownlinkPublisher.publishToDevice(clientId, payload);

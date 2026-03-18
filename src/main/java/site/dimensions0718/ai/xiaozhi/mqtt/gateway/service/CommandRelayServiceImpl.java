@@ -1,6 +1,7 @@
 package site.dimensions0718.ai.xiaozhi.mqtt.gateway.service;
 
 import org.springframework.stereotype.Service;
+import site.dimensions0718.ai.xiaozhi.mqtt.gateway.protocol.CommandType;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.session.IDeviceSessionStore;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.web.dto.CommandRequest;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.web.dto.CommandResponse;
@@ -18,7 +19,12 @@ public class CommandRelayServiceImpl implements ICommandRelayService {
 
     @Override
     public CommandResponse relay(String clientId, CommandRequest commandRequest) {
-        if (commandRequest == null || commandRequest.type() == null || commandRequest.type().isBlank()) {
+        if (commandRequest == null) {
+            return CommandResponse.failure("invalid command type");
+        }
+
+        CommandType commandType = CommandType.from(commandRequest.type());
+        if (commandType == CommandType.UNKNOWN) {
             return CommandResponse.failure("invalid command type");
         }
 
@@ -26,14 +32,14 @@ public class CommandRelayServiceImpl implements ICommandRelayService {
             return CommandResponse.failure("device not connected");
         }
 
-        if (!"mcp".equals(commandRequest.type())) {
+        if (commandType != CommandType.MCP) {
             return CommandResponse.failure("unsupported command type: " + commandRequest.type());
         }
 
         return CommandResponse.success(Map.of(
                 "relay", "accepted",
                 "clientId", clientId,
-                "type", commandRequest.type()
+                "type", commandType.name().toLowerCase()
         ));
     }
 }
