@@ -1,10 +1,12 @@
 package site.dimensions0718.ai.xiaozhi.mqtt.gateway.udp;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +14,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Component;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.config.UdpServerProperties;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Component
@@ -95,5 +98,13 @@ public class NettyUdpServerLifecycle implements SmartLifecycle {
     public void stop(Runnable callback) {
         stop();
         callback.run();
+    }
+
+    public boolean sendDatagram(byte[] payload, InetSocketAddress remoteAddress) {
+        if (!running.get() || channel == null || payload == null || payload.length == 0 || remoteAddress == null) {
+            return false;
+        }
+        channel.writeAndFlush(new DatagramPacket(Unpooled.wrappedBuffer(payload), remoteAddress));
+        return true;
     }
 }

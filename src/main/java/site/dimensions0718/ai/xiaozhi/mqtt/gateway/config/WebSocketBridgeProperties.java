@@ -1,10 +1,14 @@
 package site.dimensions0718.ai.xiaozhi.mqtt.gateway.config;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Setter
+@Getter
 @ConfigurationProperties(prefix = "gateway.bridge")
 public class WebSocketBridgeProperties {
 
@@ -12,45 +16,7 @@ public class WebSocketBridgeProperties {
     private int helloVersion = 2;
     private int frameDurationMs = 60;
     private int connectTimeoutMillis = 5000;
+    private String serverSecret = "";
     private List<String> chatServers = new ArrayList<>();
 
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public int getHelloVersion() {
-        return helloVersion;
-    }
-
-    public void setHelloVersion(int helloVersion) {
-        this.helloVersion = helloVersion;
-    }
-
-    public int getFrameDurationMs() {
-        return frameDurationMs;
-    }
-
-    public void setFrameDurationMs(int frameDurationMs) {
-        this.frameDurationMs = frameDurationMs;
-    }
-
-    public int getConnectTimeoutMillis() {
-        return connectTimeoutMillis;
-    }
-
-    public void setConnectTimeoutMillis(int connectTimeoutMillis) {
-        this.connectTimeoutMillis = connectTimeoutMillis;
-    }
-
-    public List<String> getChatServers() {
-        return chatServers;
-    }
-
-    public void setChatServers(List<String> chatServers) {
-        this.chatServers = chatServers;
-    }
 }

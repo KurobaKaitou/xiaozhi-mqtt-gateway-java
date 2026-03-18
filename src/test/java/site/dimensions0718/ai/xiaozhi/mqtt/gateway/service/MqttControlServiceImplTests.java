@@ -3,6 +3,8 @@ package site.dimensions0718.ai.xiaozhi.mqtt.gateway.service;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import site.dimensions0718.ai.xiaozhi.mqtt.gateway.bridge.WebSocketBridgeService;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.config.GatewayRuntimeProperties;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.protocol.MqttCredentialSignature;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.session.InMemoryDeviceSessionStore;
@@ -14,6 +16,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MqttControlServiceImplTests {
 
+    private static WebSocketBridgeService bridgeServiceMock() {
+        return Mockito.mock(WebSocketBridgeService.class);
+    }
+
     @Test
     void shouldHandleHelloAndCreateSession() {
         InMemoryDeviceSessionStore store = new InMemoryDeviceSessionStore();
@@ -21,7 +27,7 @@ class MqttControlServiceImplTests {
         properties.setUdpPublicHost("127.0.0.1");
         properties.setUdpPort(8884);
         String secret = "AaBbCc123!";
-        MqttControlServiceImpl service = new MqttControlServiceImpl(store, properties, secret, new SecureRandom());
+        MqttControlServiceImpl service = new MqttControlServiceImpl(store, properties, bridgeServiceMock(), secret, new SecureRandom());
 
         String clientId = "lichuang-dev@@@a0_85_e3_f4_49_34@@@aeebef32-f0ef-4bce-9d8a-894d91bc6932";
         String username = "eyJpcCI6IjE5Mi4xNjguMS43NyJ9";
@@ -51,7 +57,7 @@ class MqttControlServiceImplTests {
         InMemoryDeviceSessionStore store = new InMemoryDeviceSessionStore();
         GatewayRuntimeProperties properties = new GatewayRuntimeProperties();
         String secret = "AaBbCc123!";
-        MqttControlServiceImpl service = new MqttControlServiceImpl(store, properties, secret, new SecureRandom());
+        MqttControlServiceImpl service = new MqttControlServiceImpl(store, properties, bridgeServiceMock(), secret, new SecureRandom());
 
         String clientId = "lichuang-dev@@@a0_85_e3_f4_49_34@@@aeebef32-f0ef-4bce-9d8a-894d91bc6932";
         String username = "eyJpcCI6IjE5Mi4xNjguMS43NyJ9";
@@ -78,7 +84,7 @@ class MqttControlServiceImplTests {
         InMemoryDeviceSessionStore store = new InMemoryDeviceSessionStore();
         GatewayRuntimeProperties properties = new GatewayRuntimeProperties();
         String secret = "AaBbCc123!";
-        MqttControlServiceImpl service = new MqttControlServiceImpl(store, properties, secret, new SecureRandom());
+        MqttControlServiceImpl service = new MqttControlServiceImpl(store, properties, bridgeServiceMock(), secret, new SecureRandom());
 
         String clientId = "lichuang-dev@@@a0_85_e3_f4_49_34@@@aeebef32-f0ef-4bce-9d8a-894d91bc6932";
         String username = "eyJpcCI6IjE5Mi4xNjguMS43NyJ9";
@@ -101,7 +107,7 @@ class MqttControlServiceImplTests {
     void shouldRejectInvalidSignature() {
         InMemoryDeviceSessionStore store = new InMemoryDeviceSessionStore();
         GatewayRuntimeProperties properties = new GatewayRuntimeProperties();
-        MqttControlServiceImpl service = new MqttControlServiceImpl(store, properties, "AaBbCc123!", new SecureRandom());
+        MqttControlServiceImpl service = new MqttControlServiceImpl(store, properties, bridgeServiceMock(), "AaBbCc123!", new SecureRandom());
 
         assertThrows(IllegalArgumentException.class,
                 () -> service.handlePublish(
@@ -119,7 +125,7 @@ class MqttControlServiceImplTests {
         GatewayRuntimeProperties properties = new GatewayRuntimeProperties();
         properties.setUdpPublicHost("127.0.0.1");
         properties.setUdpPort(8884);
-        MqttControlServiceImpl service = new MqttControlServiceImpl(store, properties, "unused", new SecureRandom());
+        MqttControlServiceImpl service = new MqttControlServiceImpl(store, properties, bridgeServiceMock(), "unused", new SecureRandom());
 
         String clientId = "lichuang-dev@@@a0_85_e3_f4_49_34@@@aeebef32-f0ef-4bce-9d8a-894d91bc6932";
         String response = service.handleBrokerPublish(clientId,

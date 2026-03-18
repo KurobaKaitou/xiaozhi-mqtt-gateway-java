@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import site.dimensions0718.ai.xiaozhi.mqtt.gateway.bridge.WebSocketBridgeService;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.config.GatewayRuntimeProperties;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.protocol.DeviceIdentity;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.protocol.MqttCredentialSignature;
@@ -25,6 +26,7 @@ public class MqttControlServiceImpl implements IMqttControlService {
 
     private final IDeviceSessionStore sessionStore;
     private final GatewayRuntimeProperties runtimeProperties;
+    private final WebSocketBridgeService webSocketBridgeService;
     private final String signatureKey;
     private final SecureRandom secureRandom;
 
@@ -32,19 +34,23 @@ public class MqttControlServiceImpl implements IMqttControlService {
     public MqttControlServiceImpl(
             IDeviceSessionStore sessionStore,
             GatewayRuntimeProperties runtimeProperties,
+            WebSocketBridgeService webSocketBridgeService,
             org.springframework.core.env.Environment environment
     ) {
-        this(sessionStore, runtimeProperties, environment.getProperty("MQTT_SIGNATURE_KEY", ""), new SecureRandom());
+        this(sessionStore, runtimeProperties, webSocketBridgeService,
+                environment.getProperty("MQTT_SIGNATURE_KEY", ""), new SecureRandom());
     }
 
     MqttControlServiceImpl(
             IDeviceSessionStore sessionStore,
             GatewayRuntimeProperties runtimeProperties,
+            WebSocketBridgeService webSocketBridgeService,
             String signatureKey,
             SecureRandom secureRandom
     ) {
         this.sessionStore = sessionStore;
         this.runtimeProperties = runtimeProperties;
+        this.webSocketBridgeService = webSocketBridgeService;
         this.signatureKey = signatureKey == null ? "" : signatureKey;
         this.secureRandom = secureRandom;
     }
@@ -116,6 +122,7 @@ public class MqttControlServiceImpl implements IMqttControlService {
         secureRandom.nextBytes(key);
         session.activateUdp(sessionId, version, key, nonce);
         sessionStore.upsert(session);
+        webSocketBridgeService.ensureBridgeSession(session, payload);
 
         Map<String, Object> udp = new HashMap<>();
         udp.put("server", runtimeProperties.getUdpPublicHost());

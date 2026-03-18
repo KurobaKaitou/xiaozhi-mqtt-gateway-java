@@ -36,10 +36,13 @@ public class MqttTopicResolver {
     }
 
     public String buildOutboundTopic(String clientId) {
+        return resolveTopicTemplate(properties.getOutboundTopicTemplate(), clientId);
+    }
+
+    public String resolveTopicTemplate(String template, String clientId) {
         if (clientId == null || clientId.isBlank()) {
             throw new IllegalArgumentException("clientId must not be blank");
         }
-        String template = properties.getOutboundTopicTemplate();
         if (template == null || template.isBlank()) {
             throw new IllegalArgumentException("outbound topic template must not be blank");
         }

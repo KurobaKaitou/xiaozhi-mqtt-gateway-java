@@ -4,6 +4,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Setter
 @Getter
 @ConfigurationProperties(prefix = "gateway.mqtt")
@@ -17,6 +20,7 @@ public class MqttGatewayProperties {
     private String inboundTopic;
     private String outboundTopicTemplate;
     private String clientIdPayloadField;
+    private List<String> compatibilityOutboundTopics = new ArrayList<>(List.of("null", "device/{clientId}/down"));
     private int qos;
 
 }

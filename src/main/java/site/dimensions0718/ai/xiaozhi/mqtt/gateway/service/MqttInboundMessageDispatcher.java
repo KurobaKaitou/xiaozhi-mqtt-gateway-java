@@ -2,13 +2,10 @@ package site.dimensions0718.ai.xiaozhi.mqtt.gateway.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,17 +16,16 @@ public class MqttInboundMessageDispatcher {
 
     private final IMqttControlService mqttControlService;
     private final MqttTopicResolver topicResolver;
-    private final MessageChannel mqttOutboundChannel;
+    private final IMqttDownlinkPublisher mqttDownlinkPublisher;
 
     public MqttInboundMessageDispatcher(
             IMqttControlService mqttControlService,
             MqttTopicResolver topicResolver,
-            @Qualifier("mqttOutboundChannel")
-            MessageChannel mqttOutboundChannel
+            IMqttDownlinkPublisher mqttDownlinkPublisher
     ) {
         this.mqttControlService = mqttControlService;
         this.topicResolver = topicResolver;
-        this.mqttOutboundChannel = mqttOutboundChannel;
+        this.mqttDownlinkPublisher = mqttDownlinkPublisher;
     }
 
     @ServiceActivator(inputChannel = "mqttInboundChannel")
@@ -45,10 +41,8 @@ public class MqttInboundMessageDispatcher {
             String response = mqttControlService.handleBrokerPublish(clientId, message.getPayload());
             if (response != null && !response.isBlank()) {
                 String responseTopic = topicResolver.buildOutboundTopic(clientId);
-                boolean sent = mqttOutboundChannel.send(MessageBuilder.withPayload(response)
-                        .setHeader(MqttHeaders.TOPIC, responseTopic)
-                        .build());
-                log.info("mqtt downlink publish: topic={}, clientId={}, sent={}", responseTopic, clientId, sent);
+                mqttDownlinkPublisher.publishToDevice(clientId, response);
+                log.debug("mqtt downlink publish requested: primaryTopic={}, clientId={}", responseTopic, clientId);
             }
         } catch (RuntimeException exception) {
             log.warn("failed to process mqtt inbound message, topic={}", topic, exception);

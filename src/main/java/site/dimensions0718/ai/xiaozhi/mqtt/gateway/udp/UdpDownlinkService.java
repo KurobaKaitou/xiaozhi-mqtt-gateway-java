@@ -2,6 +2,7 @@ package site.dimensions0718.ai.xiaozhi.mqtt.gateway.udp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.protocol.AesCtrCodec;
 import site.dimensions0718.ai.xiaozhi.mqtt.gateway.protocol.UdpPacketHeader;
@@ -19,6 +20,12 @@ public class UdpDownlinkService {
 
     private static final Logger log = LoggerFactory.getLogger(UdpDownlinkService.class);
 
+    private final ObjectProvider<NettyUdpServerLifecycle> udpServerLifecycleProvider;
+
+    public UdpDownlinkService(ObjectProvider<NettyUdpServerLifecycle> udpServerLifecycleProvider) {
+        this.udpServerLifecycleProvider = udpServerLifecycleProvider;
+    }
+
     public boolean sendAudio(DeviceSession session, byte[] opusPayload, long timestamp) {
         InetSocketAddress remoteAddress = session.udpRemoteAddress();
         if (remoteAddress == null || opusPayload == null || opusPayload.length == 0) {
@@ -31,9 +38,16 @@ public class UdpDownlinkService {
         byte[] message = Arrays.copyOf(header, header.length + encrypted.length);
         System.arraycopy(encrypted, 0, message, header.length, encrypted.length);
 
+        NettyUdpServerLifecycle lifecycle = udpServerLifecycleProvider.getIfAvailable();
+        if (lifecycle != null && lifecycle.sendDatagram(message, remoteAddress)) {
+            log.debug("udp downlink sent via netty channel, clientId={}, remote={}", session.clientId(), remoteAddress);
+            return true;
+        }
+
         try (DatagramSocket socket = new DatagramSocket()) {
             DatagramPacket packet = new DatagramPacket(message, message.length, remoteAddress);
             socket.send(packet);
+            log.warn("udp downlink used fallback ephemeral socket, clientId={}, remote={}", session.clientId(), remoteAddress);
             return true;
         } catch (Exception ex) {
             log.warn("failed to send udp downlink for clientId={}", session.clientId(), ex);
