@@ -54,6 +54,10 @@ public record UdpPacketHeader(
         return packet.length >= HEADER_LENGTH + header.payloadLength();
     }
 
+    public static byte[] buildNonceHeader(long connectionId) {
+        return new UdpPacketHeader(TYPE_AUDIO, 0, 0, connectionId, 0, 0).encode();
+    }
+
     private static void validateUnsignedInt(long value, String field) {
         if (value < 0 || value > 0xFFFF_FFFFL) {
             throw new IllegalArgumentException(field + " must be uint32");
