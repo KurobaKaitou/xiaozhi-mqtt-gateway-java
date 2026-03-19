@@ -33,3 +33,4 @@ build/
 .vscode/
 upstream-xiaozhi-mqtt-gateway
 *.properties
+nul

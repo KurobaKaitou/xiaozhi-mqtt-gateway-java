@@ -111,6 +111,34 @@ public class WebSocketBridgeService {
         }
     }
 
+    public boolean forwardDeviceControl(String clientId, String payloadJson) {
+        if (!bridgeProperties.isEnabled() || clientId == null || clientId.isBlank() || payloadJson == null || payloadJson.isBlank()) {
+            return false;
+        }
+
+        List<String> chatServers = bridgeProperties.getChatServers();
+        if (CollectionUtils.isEmpty(chatServers) || chatServers.getFirst().isBlank()) {
+            return false;
+        }
+
+        BridgeSession session = sessions.get(clientId);
+        if (session == null || session.webSocket == null) {
+            Optional<DeviceSession> deviceSession = sessionStore.findByClientId(clientId);
+            if (deviceSession.isEmpty()) {
+                log.warn("drop device control message: no session found, clientId={}", clientId);
+                return false;
+            }
+            session = sessions.computeIfAbsent(clientId, key -> openSession(deviceSession.get(), chatServers, null));
+            if (session == null || session.webSocket == null) {
+                log.warn("drop device control message: bridge unavailable, clientId={}", clientId);
+                return false;
+            }
+        }
+
+        session.webSocket.sendText(payloadJson, true);
+        return true;
+    }
+
     private BridgeSession openSession(DeviceSession deviceSession, List<String> chatServers, JSONObject deviceHelloPayload) {
         String server = pickServer(chatServers);
         String clientId = deviceSession.clientId();
