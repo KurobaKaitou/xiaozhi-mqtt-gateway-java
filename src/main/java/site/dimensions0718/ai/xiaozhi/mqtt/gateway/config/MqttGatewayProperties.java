@@ -20,7 +20,7 @@ public class MqttGatewayProperties {
     private String inboundTopic;
     private String outboundTopicTemplate;
     private String clientIdPayloadField;
-    private List<String> compatibilityOutboundTopics = new ArrayList<>(List.of("null", "device/{clientId}/down"));
+    private List<String> compatibilityOutboundTopics = new ArrayList<>();
     private int qos;
 
 }

@@ -5,10 +5,10 @@ gateway:
     client-id-prefix: ${GATEWAY_MQTT_CLIENT_ID_PREFIX:xiaozhi-java-gateway}
     username: ${GATEWAY_MQTT_USERNAME:}
     password: ${GATEWAY_MQTT_PASSWORD:}
-    inbound-topic: ${GATEWAY_MQTT_INBOUND_TOPIC:device/+/up}
-    outbound-topic-template: ${GATEWAY_MQTT_OUTBOUND_TOPIC_TEMPLATE:devices/p2p/{macRaw}}
+    inbound-topic: ${GATEWAY_MQTT_INBOUND_TOPIC:devices/p2p/+}
+    outbound-topic-template: ${GATEWAY_MQTT_OUTBOUND_TOPIC_TEMPLATE:device-server}
     client-id-payload-field: ${GATEWAY_MQTT_CLIENT_ID_PAYLOAD_FIELD:client_id}
-    compatibility-outbound-topics: ${GATEWAY_MQTT_COMPATIBILITY_OUTBOUND_TOPICS:null,device/{clientId}/down}
+    compatibility-outbound-topics: ${GATEWAY_MQTT_COMPATIBILITY_OUTBOUND_TOPICS:}
     qos: ${GATEWAY_MQTT_QOS:0}
   runtime:
     # 运行时向设备下发的 UDP 地址与端口

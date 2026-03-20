@@ -15,6 +15,9 @@ public class MqttTopicResolver {
     }
 
     public String extractClientId(String topic, String payloadJson) {
+        if (isDevicesP2pTopic(topic)) {
+            return extractClientIdFromDevicesP2pTopic(topic, payloadJson);
+        }
         if ("device-server".equals(topic)) {
             return extractClientIdFromPayload(payloadJson);
         }
@@ -27,12 +30,27 @@ public class MqttTopicResolver {
         }
         String[] parts = topic.split("/");
         if (parts.length < 3) {
-            throw new IllegalArgumentException("topic format must be device/{clientId}/up");
+            throw new IllegalArgumentException("topic format must be device/{clientId}/up or devices/p2p/{macRaw}");
         }
         if (!"device".equals(parts[0]) || !"up".equals(parts[parts.length - 1])) {
             throw new IllegalArgumentException("unsupported inbound topic format");
         }
         return parts[1];
+    }
+
+    private String extractClientIdFromDevicesP2pTopic(String topic, String payloadJson) {
+        String[] parts = topic.split("/");
+        if (parts.length != 3 || !"devices".equals(parts[0]) || !"p2p".equals(parts[1]) || parts[2].isBlank()) {
+            throw new IllegalArgumentException("topic format must be devices/p2p/{macRaw}");
+        }
+
+        String clientId = extractClientIdFromPayload(payloadJson);
+        String topicMacRaw = parts[2];
+        String payloadMacRaw = extractMacRawFromClientId(clientId);
+        if (!normalizeMacRaw(topicMacRaw).equals(normalizeMacRaw(payloadMacRaw))) {
+            throw new IllegalArgumentException("clientId mac segment mismatches devices/p2p topic");
+        }
+        return clientId;
     }
 
     public String buildOutboundTopic(String clientId) {
@@ -58,6 +76,14 @@ public class MqttTopicResolver {
             return parts[1];
         }
         return clientId;
+    }
+
+    private static boolean isDevicesP2pTopic(String topic) {
+        return topic != null && topic.startsWith("devices/p2p/");
+    }
+
+    private static String normalizeMacRaw(String macRaw) {
+        return macRaw.replace(':', '_').toLowerCase();
     }
 
     private String extractClientIdFromPayload(String payloadJson) {
