@@ -64,8 +64,8 @@ docker run -d --name emqx-enterprise \
 
 - `enabled`：是否启用 MQTT 适配层
 - `server-uri`：EMQX 地址，例如 `tcp://ip:1883`
-- `inbound-topic`：设备上行发布主题（默认 `devices/p2p/+`）
-- `outbound-topic-template`：主下行发布主题模板（默认 `device-server`）
+- `inbound-topic`：设备上行发布主题（默认 `device-server`）
+- `outbound-topic-template`：主下行发布主题模板（默认 `devices/p2p/{macRaw}`）
 - `compatibility-outbound-topics`：兼容下行主题（用于不同固件兼容）
 
 ### `gateway.runtime`
@@ -94,11 +94,11 @@ docker run -d --name emqx-enterprise \
 
 ### 设备上行（publish）
 
-- `devices/p2p/{macRaw}`
+- `device-server`（主通道）
 
 ### 设备下行（subscribe）
 
-- `device-server`（主通道）
+- `devices/p2p/{macRaw}`
 
 > 如果设备提示 `waiting response timeout`，优先检查：设备是否订阅到了网关实际回包的 topic。
 

@@ -18,7 +18,7 @@ public class MqttTopicResolver {
         if (isDevicesP2pTopic(topic)) {
             return extractClientIdFromDevicesP2pTopic(topic, payloadJson);
         }
-        if ("device-server".equals(topic)) {
+        if (isDeviceServerTopic(topic)) {
             return extractClientIdFromPayload(payloadJson);
         }
         return extractClientIdFromInboundTopic(topic);
@@ -80,6 +80,10 @@ public class MqttTopicResolver {
 
     private static boolean isDevicesP2pTopic(String topic) {
         return topic != null && topic.startsWith("devices/p2p/");
+    }
+
+    private static boolean isDeviceServerTopic(String topic) {
+        return topic != null && ("device-server".equals(topic) || topic.startsWith("device-server/"));
     }
 
     private static String normalizeMacRaw(String macRaw) {
